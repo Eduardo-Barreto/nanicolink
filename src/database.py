@@ -42,6 +42,13 @@ class Database():
                 links_with_tag.append(link)
         return links_with_tag
 
+    def keyword_exists(self, keyword):
+        try:
+            self.get_link_by_keyword(keyword)
+            return True
+        except:
+            return False
+
     def create_link(self, link: Link):
         keyword = link.keyword
         link_data = link.to_dict()
