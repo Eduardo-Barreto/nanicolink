@@ -1,5 +1,3 @@
-from cgi import test
-from webbrowser import get
 from link import *
 from database import *
 from os import environ
