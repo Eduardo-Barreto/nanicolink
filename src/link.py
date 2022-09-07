@@ -1,14 +1,19 @@
 from time import time
+from string import ascii_letters, digits
+from random import seed, choice
+from requests import get
 
 class Link():
     def __init__(self, _long_url: str = '', _keyword: str = '', _tags: list = [], _destroy_clicks: int = 0, _destroy_time: int = 0):
         self.long_url = _long_url
         self.keyword = _keyword
+        if(self.keyword == ''):
+            self.generate_keyword()
         self.clicks = 0
         self.destroy_clicks = _destroy_clicks
         self.tags = ['all'] + _tags
         self.date_created = time()
-        self.destroy_time = _destroy_time*60*60*24
+        self.destroy_time = self.date_created + _destroy_time*60*60*24
 
     def load_json(self, json: dict):
         self.keyword = list(json.keys())[0]
@@ -31,3 +36,7 @@ class Link():
                 'destroy_time': self.destroy_time
             }
         }
+
+    def generate_keyword(self):
+        seed(self.long_url)
+        self.keyword = ''.join(choice(ascii_letters + digits) for i in range(8))
