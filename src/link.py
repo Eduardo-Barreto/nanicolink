@@ -1,12 +1,12 @@
 from time import time
 
 class Link():
-    def __init__(self, _long_url: str = '', _keyword: str = '', _tags: list = ['all'], _destroy_clicks: int = 0, _destroy_time: int = 0):
+    def __init__(self, _long_url: str = '', _keyword: str = '', _tags: list = [], _destroy_clicks: int = 0, _destroy_time: int = 0):
         self.long_url = _long_url
         self.keyword = _keyword
         self.clicks = 0
         self.destroy_clicks = _destroy_clicks
-        self.tags = _tags
+        self.tags = ['all'] + _tags
         self.date_created = time()
         self.destroy_time = _destroy_time*60*60*24
 
