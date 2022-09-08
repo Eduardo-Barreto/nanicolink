@@ -35,17 +35,16 @@ class Link:
         '''
         self.long_url = long_url
         self.keyword = keyword
-        if self.keyword == '':
-            self.generate_keyword()
         self.clicks = 0
         self.destroy_clicks = destroy_clicks
         self.tags = ['all'] + tags
         self.date_created = time()
-        self.destroy_time = self.date_created + destroy_time * 60 * 60 * 24
+        self.destroy_time = destroy_time
+        self.validate_link()
 
-    def load_json(self, json: dict) -> None:
+    def load_db_json(self, json: dict) -> None:
         '''
-        Carrega os valores de um dicionário para a classe
+        Carrega os valores de um dicionário (da db) para a classe
 
         Parâmetros
         ----------
@@ -54,12 +53,13 @@ class Link:
         '''
         self.keyword = list(json.keys())[0]
         json = json.get(self.keyword)
-        self.long_url = json['long_url']
-        self.clicks = json['clicks']
-        self.destroy_clicks = json['destroy_clicks']
-        self.tags = json['tags']
-        self.date_created = json['date_created']
-        self.destroy_time = json['destroy_time']
+        self.long_url = json.get('long_url')
+        self.clicks = json.get('clicks', 0)
+        self.destroy_clicks = json.get('destroy_clicks', 0)
+        self.tags = json.get('tags', ['all'])
+        self.date_created = json.get('date_created', time())
+        self.destroy_time = json.get('destroy_time', 0)
+        self.validate_link()
 
     def to_dict(self) -> dict:
         '''
@@ -88,3 +88,19 @@ class Link:
         seed(self.long_url)
         self.keyword = ''.join(choice(ascii_letters + digits)
                                for i in range(8))
+
+    def validate_link(self):
+        '''
+        Valida as informações do link
+            keyword não pode estar vazia
+            destroy_time não pode ser negativo
+            destroy_clicks não pode ser negativo
+        '''
+        if self.keyword == '':
+            self.generate_keyword()
+
+        if self.destroy_time < 0:
+            self.destroy_time = 0
+
+        if self.destroy_clicks < 0:
+            self.destroy_clicks = 0
