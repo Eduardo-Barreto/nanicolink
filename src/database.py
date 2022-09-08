@@ -43,7 +43,7 @@ class Database:
             Objeto Link convertido
         '''
         object_link = Link()
-        object_link.load_json(json)
+        object_link.load_db_json(json)
         return object_link
 
     def get_all_links(self) -> list:
@@ -178,4 +178,23 @@ class Database:
         save_request = requests.patch(
             f'{self.url}/links/{keyword}/.json', data=dumps(link_data)
         )
+        return save_request.status_code
+
+    def delete_link(self, link: Link) -> int:
+        '''
+        Deleta um link no banco de dados
+
+        Parâmetros
+        ----------
+        link: Link
+            Link a ser deletado
+
+        Retorno
+        -------
+        status_code: int
+            Código de status da requisição
+        '''
+
+        keyword = link.keyword
+        save_request = requests.delete(f'{self.url}/links/{keyword}/.json')
         return save_request.status_code
