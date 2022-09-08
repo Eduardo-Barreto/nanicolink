@@ -85,7 +85,7 @@ class Link:
         '''
         Gera uma keyword para a URL encurtada baseada na URL longa
         '''
-        seed(self.long_url)
+        seed(self.long_url+str(time()))
         self.keyword = ''.join(choice(ascii_letters + digits)
                                for i in range(8))
 
