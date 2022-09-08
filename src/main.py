@@ -109,9 +109,6 @@ async def create_link(
         }
     )
 ):
-    if db.keyword_exists(link.keyword):
-        raise HTTPException(409, f'A keyword {link.keyword} já existe')
-
     link = Link(
         link.long_url,
         link.keyword,
@@ -119,12 +116,19 @@ async def create_link(
         link.destroy_clicks,
         link.destroy_time
     )
+
+    if db.keyword_exists(link.keyword):
+        raise HTTPException(409, f'A keyword {link.keyword} já existe')
+
     try:
         db.create_link(link)
     except Exception as e:
         raise HTTPException(500, 'Erro ao criar link' + str(e))
 
-    return set_response(201, 'Link criado com sucesso')
+    return set_response(
+        201,
+        f'Link com a keyword {link.keyword} criado com sucesso.'
+    )
 
 
 @app.delete('/delete')
