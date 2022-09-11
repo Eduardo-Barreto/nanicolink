@@ -1,14 +1,17 @@
-from os import environ
-import uvicorn
-from fastapi import FastAPI, HTTPException, Body
-from fastapi.responses import JSONResponse, RedirectResponse, Response
-from fastapi.encoders import jsonable_encoder
-from fastapi.middleware.cors import CORSMiddleware
 from time import time
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse, RedirectResponse, Response
+from fastapi import FastAPI, HTTPException, Body
+import uvicorn
+from sys import path
+from os import environ
 
-from link import Link
-from database import Database
+path.append('./src')
 import models
+from database import Database
+from link import Link
+
 
 db = Database(environ['databaseURL'])
 
@@ -45,7 +48,7 @@ async def redirect(keyword: str) -> RedirectResponse:
     if not db.keyword_exists(keyword):
         raise HTTPException(
             status_code=404,
-            detail='Não foi possível encontrar' +
+            detail='Não foi possível encontrar ' +
             f'um link com a keyword {keyword}'
         )
 
@@ -86,7 +89,7 @@ async def get_link_details(keyword: str) -> Link:
     if not db.keyword_exists(keyword):
         raise HTTPException(
             status_code=404,
-            detail='Não foi possível encontrar' +
+            detail='Não foi possível encontrar ' +
             f'um link com a keyword {keyword}'
         )
 
@@ -208,7 +211,7 @@ async def delete_link(
     if not db.keyword_exists(keyword):
         raise HTTPException(
             status_code=404,
-            detail='Não foi possível encontrar' +
+            detail='Não foi possível encontrar ' +
             f'um link com a keyword {keyword}'
         )
 
