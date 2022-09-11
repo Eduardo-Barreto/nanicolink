@@ -1,17 +1,15 @@
 # nanicolink
 Pílulas de nanicolina (Chapolin) para o seu link longo!
 
-tasks
-https://eduardo-barreto.notion.site/8cc5b41333464993864d1144c0d503a8?v=fbeeaf16fde243a2a26b73762c3474f2
-
 # Requisições
+Todas as requisições devem ser feitas para o endereço `https://nanicolink.herokuapp.com/`.
 
 ## Criar um link
-- url: `host/create`
+- url: `https://nanicolink.herokuapp.com/create`
 - método: `PUT`
 
 Ao criar um link, você pode personalizar os seguintes itens:
-- keyword: a palavra-chave que será usada para acessar o link (ex: host/keyword)
+- keyword: a palavra-chave que será usada para acessar o link (ex: https://nanicolink.herokuapp.com/keyword)
 - url: o link que será encurtado
 - tags: tags para o link
 - destroy_clicks: a quantidade de cliques que o link pode receber antes de ser destruído (0 para infinito)
@@ -37,7 +35,7 @@ Você também pode optar por usar as configurações padrão, para isso basta pa
 ```
 
 ## Deletar um link
-- url: `host/delete`
+- url: `https://nanicolink.herokuapp.com/delete`
 - método: `DELETE`
 
 Para deletar um link, você precisa passar a keyword dele
@@ -48,14 +46,14 @@ Para deletar um link, você precisa passar a keyword dele
 ```
 
 ## Acessar um link
-- url: `host/[keyword]`
+- url: `https://nanicolink.herokuapp.com/[keyword]`
 - método: `GET`
 Ao acessar um link, você é redirecionado.
 
 ## Listar links por tag
-- url: `host/tag/[tag]`
+- url: `https://nanicolink.herokuapp.com/tag/[tag]`
 - método: `GET`
 
 # Acessar detalhes de um link
-- url: `host/details/?keyword=[keyword]`
+- url: `https://nanicolink.herokuapp.com/details/?keyword=[keyword]`
 - método: `GET`
