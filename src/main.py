@@ -8,12 +8,15 @@ from sys import path
 from os import environ
 
 path.append('./src')
+
 import models
 from database import Database
 from link import Link
 
-
 db = Database(environ['databaseURL'])
+
+HOST = 'https://nanicolink.herokuapp.com'
+
 
 description = 'Pílulas de nanicolina para o seu link longo!'
 
@@ -188,7 +191,8 @@ async def create_link(
 
     return Response(
         status_code=201,
-        content=f'Link com a keyword {link.keyword} criado com sucesso.'
+        content=f'Link com a keyword {link.keyword} criado com sucesso: ' +
+        f'{HOST}/{link.keyword}'
     )
 
 
