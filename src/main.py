@@ -1,44 +1,52 @@
 from os import environ
 import uvicorn
-from fastapi import FastAPI, HTTPException, Body, Request
-from starlette.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, Body
+from fastapi.responses import JSONResponse, RedirectResponse, Response
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from time import time
-from typing import Optional
-from pydantic import BaseModel
 
 from link import Link
 from database import Database
+import models
 
 db = Database(environ['databaseURL'])
 
+description = 'Pílulas de nanicolina para o seu link longo!'
 
-def set_response(status_code, message):
-    return {'status_code': status_code, 'message': message}
-
-
-class LinkModel(BaseModel):
-    long_url: str
-    keyword: Optional[str] = ''
-    tags: Optional[list] = []
-    destroy_clicks: Optional[int] = 0
-    destroy_time: Optional[int] = 0
+app = FastAPI(title='Nanicolink', description=description)
 
 
-app = FastAPI()
-
-
-@app.get('/')
+@app.get(
+    '/',
+    summary='Redirecionamento GitHub',
+    response_class=RedirectResponse,
+    response_description='Redirecionamento para o repositório no GitHub',
+    description='Redireciona para o repositório do projeto no GitHub'
+)
 async def root():
-    return set_response(200, 'Bem vindo! Página inicial')
+    return RedirectResponse(
+        url='https://github.com/Eduardo-Barreto/nanicolink'
+    )
 
 
-@app.get('/{keyword}')
-async def redirect(keyword: str):
+@app.get(
+    '/{keyword}',
+    summary='Redireciona para um link',
+    response_class=RedirectResponse,
+    response_description='Redirecionamento para o link solicitado'
+)
+async def redirect(keyword: str) -> RedirectResponse:
+    '''
+    Redireciona para o link que foi encurtado
+
+    - **keyword**: Apelido do link
+    '''
     if not db.keyword_exists(keyword):
         raise HTTPException(
-            404,
-            f'Não foi possível encontrar um link com a keyword {keyword}'
+            status_code=404,
+            detail='Não foi possível encontrar' +
+            f'um link com a keyword {keyword}'
         )
 
     link = db.get_link_by_keyword(keyword)
@@ -50,9 +58,12 @@ async def redirect(keyword: str):
             try:
                 db.delete_link(link)
             except Exception as e:
-                raise HTTPException(500, 'Erro ao deletar link: ' + str(e))
+                raise HTTPException(
+                    status_code=500,
+                    detail='Erro ao deletar link: ' + str(e)
+                )
 
-            raise HTTPException(410, 'Link expirado')
+            raise HTTPException(status_code=410, detail='Link expirado')
 
     if link.destroy_clicks > 0 and link.clicks >= link.destroy_clicks:
         db.delete_link(link)
@@ -60,35 +71,68 @@ async def redirect(keyword: str):
     return RedirectResponse(url=link.long_url)
 
 
-@app.get('/{keyword}/details')
-async def get_link_details(keyword: str):
+@app.get(
+    '/details/',
+    response_model=models.ResponseLink,
+    summary='Retorna detalhes de um link encurtado',
+    response_description='Detalhes do link',
+)
+async def get_link_details(keyword: str) -> Link:
+    '''
+    Retorna os detalhes de um link encurtado
+
+    - **keyword**: keyword do link
+    '''
     if not db.keyword_exists(keyword):
         raise HTTPException(
-            404,
-            f'Não foi possível encontrar um link com a keyword {keyword}'
+            status_code=404,
+            detail='Não foi possível encontrar' +
+            f'um link com a keyword {keyword}'
         )
 
     try:
         link = db.get_link_by_keyword(keyword)
     except Exception as e:
-        raise HTTPException(500, 'Erro ao buscar link: ' + str(e))
+        raise HTTPException(
+            status_code=500,
+            detail='Erro ao buscar link: ' + str(e)
+        )
 
-    return set_response(200, link)
+    return JSONResponse(status_code=200, content=jsonable_encoder(link))
 
 
-@app.get('/tag/{tag}')
-async def get_links_by_tag(tag: str):
+@app.get(
+    '/tag/{tag}',
+    summary='Retorna todos os links com uma tag específica',
+    response_description='Links com a tag especificada',
+    response_class=JSONResponse,
+    response_model=list[models.ResponseLink]
+)
+async def get_links_by_tag(tag: str = 'all') -> JSONResponse:
+    '''
+    Retorna todos os links com uma tag específica
+
+    - **tag**: tag dos links
+    '''
+
     try:
         links = db.get_links_by_tag(tag)
     except Exception as e:
-        raise HTTPException(500, 'Erro ao buscar links: ' + str(e))
+        raise HTTPException(
+            status_code=500,
+            detail='Erro ao buscar links: ' + str(e)
+        )
 
-    return set_response(200, links)
+    return JSONResponse(status_code=200, content=jsonable_encoder(links))
 
 
-@app.put('/create')
+@app.put(
+    '/create',
+    summary='Cria um link encurtado',
+    response_class=Response
+)
 async def create_link(
-    link: LinkModel = Body(
+    link: models.RequestLink = Body(
         examples={
             "Normal": {
                 "summary": "Cria um link padrão, sem personalização",
@@ -108,7 +152,16 @@ async def create_link(
             }
         }
     )
-):
+) -> Response:
+    '''
+    Cria um link encurtado
+
+    - **long_url**: URL que será encurtada
+    - **keyword**: Apelido do link
+    - **tags**: Tags do link
+    - **destroy_clicks**: Número de cliques para o link ser destruído
+    - **destroy_time**: Tempo em horas para o link ser destruído
+    '''
     link = Link(
         link.long_url,
         link.keyword,
@@ -118,37 +171,60 @@ async def create_link(
     )
 
     if db.keyword_exists(link.keyword):
-        raise HTTPException(409, f'A keyword {link.keyword} já existe')
+        raise HTTPException(
+            status_code=409,
+            detail=f'A keyword {link.keyword} já existe')
 
     try:
         db.create_link(link)
     except Exception as e:
-        raise HTTPException(500, 'Erro ao criar link' + str(e))
+        raise HTTPException(
+            status_code=500,
+            detail='Erro ao criar link' + str(e)
+        )
 
-    return set_response(
-        201,
-        f'Link com a keyword {link.keyword} criado com sucesso.'
+    return Response(
+        status_code=201,
+        content=f'Link com a keyword {link.keyword} criado com sucesso.'
     )
 
 
 @app.delete('/delete')
-async def delete_link(request: Request):
-    keyword = await request.json()
-    keyword = keyword.get('keyword')
+async def delete_link(
+    request: models.Keyword = Body(
+        examples={
+            "Normal": {
+                "summary": "Deleta um link pela keyword",
+                "value": {
+                    "keyword": "google",
+                }
+            }
+        }
+    )
+) -> Response:
+
+    keyword = request.keyword
 
     if not db.keyword_exists(keyword):
         raise HTTPException(
-            404,
-            f'Não foi possível encontrar um link com a keyword {keyword}'
+            status_code=404,
+            detail='Não foi possível encontrar' +
+            f'um link com a keyword {keyword}'
         )
 
     link = db.get_link_by_keyword(keyword)
     try:
         db.delete_link(link)
     except Exception as e:
-        raise HTTPException(500, 'Erro ao deletar link: ' + str(e))
+        raise HTTPException(
+            status_code=500,
+            detail='Erro ao deletar link: ' + str(e)
+        )
 
-    return set_response(200, 'Link deletado com sucesso')
+    return Response(
+        status_code=200,
+        content=f'Link com a keyword {link.keyword} deletado com sucesso.'
+    )
 
 
 def main():
