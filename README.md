@@ -20,7 +20,10 @@ Ao criar um link, você pode personalizar os seguintes itens:
 {
     "long_url": "https://google.com",
     "keyword": "google",
-    "tags": ["search", "google"],
+    "tags": [
+        "search",
+        "google"
+    ],
     "destroy_clicks": 0,
     "destroy_time": 0
 }
@@ -29,7 +32,7 @@ Ao criar um link, você pode personalizar os seguintes itens:
 Você também pode optar por usar as configurações padrão, para isso basta passar somente o link no request
 ```json
 {
-    "long_url": "https://google.com",
+    "long_url": "https://google.com"
 }
 ```
 
@@ -54,5 +57,5 @@ Ao acessar um link, você é redirecionado.
 - método: `GET`
 
 # Acessar detalhes de um link
-- url: `host/[keyword]/details`
+- url: `host/details/?keyword=[keyword]`
 - método: `GET`
