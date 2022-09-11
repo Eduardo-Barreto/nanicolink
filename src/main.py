@@ -69,10 +69,26 @@ async def redirect(keyword: str) -> RedirectResponse:
                     detail='Erro ao deletar link: ' + str(e)
                 )
 
-            raise HTTPException(status_code=410, detail='Link expirado')
+            raise HTTPException(
+                status_code=404,
+                detail='Não foi possível encontrar ' +
+                f'um link com a keyword {keyword}'
+            )
 
-    if link.destroy_clicks > 0 and link.clicks >= link.destroy_clicks:
-        db.delete_link(link)
+    if link.destroy_clicks > 0 and link.clicks > link.destroy_clicks:
+        try:
+            db.delete_link(link)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail='Erro ao deletar link: ' + str(e)
+            )
+
+        raise HTTPException(
+            status_code=404,
+            detail='Não foi possível encontrar ' +
+            f'um link com a keyword {keyword}'
+        )
 
     return RedirectResponse(url=link.long_url)
 
