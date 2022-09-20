@@ -196,5 +196,5 @@ class Database:
         '''
 
         keyword = link.keyword
-        save_request = requests.delete(f'{self.url}/links/{keyword}/.json')
-        return save_request.status_code
+        delete_request = requests.delete(f'{self.url}/links/{keyword}/.json')
+        return delete_request.status_code
